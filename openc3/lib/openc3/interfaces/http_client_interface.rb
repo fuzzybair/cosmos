@@ -105,7 +105,15 @@ module OpenC3
       extra = packet.extra
       extra ||= {}
       data = packet.buffer(true) # Copy buffer so logged command isn't modified
-      extra['HTTP_URI'] = URI("#{@url}#{packet.read('HTTP_PATH')}").to_s
+
+      path = nil
+      if packet.item_exists?('HTTP_PATH')
+        path = packet.read('HTTP_PATH')
+      else
+        path = @options['HTTP_PATH']
+      end
+
+      extra['HTTP_URI'] = URI("#{@url}#{path}").to_s
       # Store the target name for use in identifying the response
       extra['HTTP_REQUEST_TARGET_NAME'] = packet.target_name
       return data, extra
@@ -119,7 +127,7 @@ module OpenC3
       headers = extra['HTTP_HEADERS']
       headers ||= {}
       uri = extra['HTTP_URI']
-      method = extra['HTTP_METHOD']
+      method = extra['HTTP_METHOD'] || @options['HTTP_METHOD']
 
       resp = nil
       case method
